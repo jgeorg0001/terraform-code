@@ -1,0 +1,64 @@
+provider "aws" {
+  region = "eu-central-1"
+  alias  = "Frankfurt"
+}
+
+
+provider "aws" {
+  region = "eu-west-3"
+  alias  = "Paris"
+}
+
+
+resource "aws_instance" "test-1" {
+  count         = 1
+  provider      = "aws.Paris"
+  ami           = "ami-0ad37dbbe571ce2a1"
+  instance_type = "t2.micro"
+  #key_name      = "lab1"
+  disable_api_termination = false
+
+
+  tags = {
+    Name       = "tf-frontend-01"
+    App        = "devops-demo"
+    Maintainer = "Jijo George"
+    Role       = "frontend"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  timeouts {
+    create = "7m"
+    delete = "1h"
+  }
+}
+resource "aws_instance" "test-2" {
+  count         = 1
+  provider      = "aws.Frankfurt"
+  ami           = "ami-0ac05733838eabc06"
+  instance_type = "t2.micro"
+  #key_name      = "lab1"
+  disable_api_termination = false
+
+
+  tags = {
+    Name       = "tf-frontend-00"
+    App        = "devops-demo"
+    Maintainer = "Jijo George"
+    Role       = "frondend"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  timeouts {
+    create = "7m"
+    delete = "1h"
+  }
+
+
+}

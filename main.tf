@@ -1,3 +1,46 @@
 provider "aws" {
-   region  = "eu-central-1"
+  region = "eu-central-1"
+  alias  = "Frankfurt"
+}
+
+
+provider "aws" {
+  region = "eu-west-3"
+  alias  = "Paris"
+}
+
+
+resource "aws_instance" "test-1" {
+  count         = 1
+  provider      = "aws.Paris"
+  ami           = "ami-0ad37dbbe571ce2a1"
+  instance_type = "t2.micro"
+  key_name      = "terraform"
+  disable_api_termination = false
+
+
+  tags = {
+    Name       = "tf-frontend-01"
+    App        = "devops-demo"
+    Maintainer = "Jijo George"
+    Role       = "frontend"
+  }
+ 
+  depends_on   = [ "aws_key_pair.terraform" ]
+
+  lifecycle {
+    prevent_destroy = false
+  }
+
+  timeouts {
+    create = "7m"
+    delete = "1h"
+  }
+
+}
+resource "aws_key_pair" "terraform" {
+  key_name  = "terraform"
+  provider  = "aws.Paris"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeGpYRbSfIiBAFE+QnCMEsm99DL5zdTB1DAYdJ5jMILNR9GoS8p/GQVCS4CNomWEtSoj89w79SASgv58cchKtNawZAWcw+ejXMSL/PlAnbIPqSOTEDZaJjDmyI+xrmjDXXGpWjZ30MyKU0VigZL3FzCMVY0SK2ml7INSMdSNwGSC1eJVPrGXeUVe60jUnLwtmEtngFI4v8J24FOXvHEz83FYVLnMaiL9itSD5XWdcCWv+I8has9MJcBzF0MJ59biOJ+SQc23M+HzXAWgXhue/LT+RcYFmPmiAzCuwNK8OkMgHqr4iUz3ZV6lfHlUcyAoQkWvbrhaV2SGd1tzG+OWil terraform@jojus-Vostro-2520"
+  
 }
