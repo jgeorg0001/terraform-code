@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 
-resource "aws_instance" "frontend" {
+resource "aws_instance" "test" {
   count                   = "${var.counts}"
   provider                = "aws.Paris"
   ami                     = "${var.ami}"
@@ -13,7 +13,35 @@ resource "aws_instance" "frontend" {
   vpc_security_group_ids  = ["${aws_security_group.frontend.id}"]
   disable_api_termination = false
 
-  tags = {
+
+  provisioner "file" {
+    source      = "user-data.sh"
+    destination = "/tmp/user-data.sh"
+      
+  connection {
+      host        = "${self.private_ip}" 
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = "${file("terraform-ap")}"
+    }
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/user-data.sh",
+      "/tmp/user-data.sh",
+    ]
+ 
+    connection {
+      host        = "${self.private_ip}"
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = "${file("terraform-ap")}"
+    }
+  }
+
+
+    #  host = "${self.private_ip}"
+    tags = {
     Name       = "${var.tags["name"]}"
     App        = "${var.tags["app"]}"
     Maintainer = "${var.tags["maintainer"]}"
@@ -51,6 +79,23 @@ resource "aws_security_group" "frontend" {
     to_port     = 22
     protocol    = "tcp"
     description = "Open SSH port open for All"
+  }
+
+
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    description = "Open SSH port open for All"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Open all outgoing connectivity"
   }
 
   tags = {
